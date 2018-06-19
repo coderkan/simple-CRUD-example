@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<link rel="stylesheet" href="custom/autocomp/jquery-ui.css">
+	<script src="custom/autocomp/jquery-1.12.4.js"></script>
+	<script src="custom/autocomp/jquery-ui.js"></script>
+ 
+	<!-- CSS Files -->
+	<link rel="icon" type="image/png" href="custom/images/icons/favicon.ico"/> 
+
+	<link rel="stylesheet" type="text/css" href="custom/vendor/boostrap337/dist/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="custom/fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+
+ 	<!-- External CSS -->
+ 	<link rel="stylesheet" type="text/css" href="mstyle.css">
+  
+	<!-- Scripts -->
+	<script  type="text/javascript" src="custom/vendor/bootstrap/js/popper.js"></script>
+	<script  type="text/javascript" src="custom/vendor/boostrap337/dist/js/bootstrap.min.js"></script>
+	<script  type="text/javascript" src="custom/vendor/select2/select2.min.js"></script>
+
+    <style>
+        input[type=text]:disabled {
+            background: transparent;
+            border: 0px solid;
+        }
+
+        th, td{
+            text-align:  center;
+        }
+
+    </style>
+
+
+    <script type="text/javascript">
+        $(function() {
+            // Handler for .ready() called.
+            $( "#spn" ).click(function() {
+
+                if($( this ).hasClass("glyphicon glyphicon-ok") ){
+                    $(this).removeClass().addClass("glyphicon glyphicon-plus");   
+                    $('#etext').attr('disabled','false');
+                }else if($( this ).hasClass("glyphicon glyphicon-plus")){
+                    $(this).removeClass().addClass("glyphicon glyphicon-ok");
+                    $('#etext').removeAttr('disabled');
+                }
+
+                /*    
+                var xx = $('#spn').attr('class');
+                alert( "Handler for .click() called." +  x +  $( this ).hasClass("glyphicon glyphicon-ok")  + " :: " + this.className + " ::::: " + xx );
+                $(this).removeClass().addClass("glyphicon glyphicon-plus");
+                */
+            });
+        });
+    </script>
+
+    <title>Document</title>
+</head>
+<body>  
+    <div class="container" style="width: 100%; height: 100%;">
+        <div style="text-align: center;">
+            <h2>Security ISG Info Page</h2>
+        </div>
+        <div class="row">
+            <div class="col-md-4 col-md-offset-4" >
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search" id="txtSearch"/>
+                    <div class="input-group-btn">
+                        <button class="btn btn-primary" type="submit">
+                            <span class="glyphicon glyphicon-search"></span>                        
+                        </button>
+                        <button class="btn btn-primary" type="submit">
+                                <span class="glyphicon glyphicon-plus"></span>                        
+                        </button>
+                </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 col-md-offset-3">
+
+
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Name & Surname</th>
+                        <th scope="col">Date</th>
+                        <th scope="col" style="text-align: center;">Edit/Update</th>
+                        <th scope="col">Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row">1</th>
+                        <td>Mark</td>
+                        <td>Otto</td>
+                        <td style="text-align: center;">
+                            <span class="glyphicon glyphicon-plus"></span>
+                        </td>
+                        <td >
+                            <span class="glyphicon glyphicon-trash"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">2</th>
+                        <td >
+                            <input id="etext" type="text" name="yourname" style="text-align:center;"value="Erkan Güzeler" disabled="disabled"/>
+                            <!--<input id="etext" type="text" name="yourname" value="Erkan Güzeler" readonly="true" ondblclick="this.readOnly=''"/>-->
+                        </td>
+                        <td>Thornton</td>
+                        <td>
+                            <span id="spn" class="glyphicon glyphicon-plus"></span>
+                        </td>
+                        <td>
+                            <span class="glyphicon glyphicon-trash"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">3</th>
+                        <td>Larry</td>
+                        <td>the Bird</td>
+                        <td>
+                            <span class="glyphicon glyphicon-plus"></span>
+                        </td>
+                        <td>
+                            <span class="glyphicon glyphicon-trash"></span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        </div>
+
+    </div>
+</body>
+</html>

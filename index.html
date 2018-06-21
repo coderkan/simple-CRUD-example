@@ -38,23 +38,167 @@
     <script type="text/javascript">
         $(function() {
             // Handler for .ready() called.
-            $( "#spn" ).click(function() {
-
-                if($( this ).hasClass("glyphicon glyphicon-ok") ){
-                    $(this).removeClass().addClass("glyphicon glyphicon-plus");   
-                    $('#etext').attr('disabled','false');
-                }else if($( this ).hasClass("glyphicon glyphicon-plus")){
-                    $(this).removeClass().addClass("glyphicon glyphicon-ok");
-                    $('#etext').removeAttr('disabled');
-                }
-
-                /*    
-                var xx = $('#spn').attr('class');
-                alert( "Handler for .click() called." +  x +  $( this ).hasClass("glyphicon glyphicon-ok")  + " :: " + this.className + " ::::: " + xx );
-                $(this).removeClass().addClass("glyphicon glyphicon-plus");
-                */
-            });
+            searchControl();
+            addControl();
+            tableEventHandler();
         });
+
+        function tableEventHandler(){
+            var tbl = document.getElementById("_table");
+            if (tbl != null) {
+                for (var i = 0; i < tbl.rows.length; i++) {
+                        tbl.rows[i].cells[3].onclick = function () { controlEditUpdate(this);};
+                        tbl.rows[i].cells[4].onclick = function () { controlDelete(this); };
+                }
+            }
+        }
+
+        function controlDelete(elm){
+            var index =  $( elm ).parent().index();  
+            var tbl = document.getElementById("_table");
+            if (tbl != null) {
+                var cll = tbl.rows[index+1].cells[1];
+                var $text = $( cll ).children('input');
+                deleteData($text.attr('id'));
+            }
+        }
+
+        function controlEditUpdate(elm){
+            var $spanIcon =  $( elm ).children('span');
+            var index =  $( elm ).parent().index();  
+            var tbl = document.getElementById("_table");
+            
+            if (tbl != null) {
+                var cll = tbl.rows[index+1].cells[1];
+                var $text = $( cll ).children('input');
+            }
+
+            if($spanIcon.hasClass("glyphicon glyphicon-ok") ){
+                // update 
+                updateInputData($text.attr('id'), $text.val());
+                $spanIcon.removeClass().addClass("glyphicon glyphicon-plus");   
+                $text.attr('disabled','false');
+            }else if($spanIcon.hasClass("glyphicon glyphicon-plus")){
+                $spanIcon.removeClass().addClass("glyphicon glyphicon-ok");
+                $text.removeAttr('disabled');
+            } 
+        }
+
+        function deleteData(id){
+            if(id == null)
+                return;
+
+            var prms = "delete=" + id;
+            $.ajax({
+                url : "http://localhost:8080/HAOSA/ISGServlet",
+                type: "POST",
+                data : prms,
+                success: function(data, textStatus, jqXHR)
+                {
+                    debugger;
+                    alert(data.message);
+                },
+                error: function (jqXHR, textStatus, errorThrown)
+                {
+                    alert("Error: " + textStatus);
+                }
+            });            
+        }
+ 
+        function updateInputData(id, text){
+            if(id == null)
+                return;
+            if(text == null) text = "";
+
+            var prms = "update=" + id + "&uname=" + text;
+            $.ajax({
+                url : "http://localhost:8080/HAOSA/ISGServlet",
+                type: "POST",
+                data : prms,
+                success: function(data, textStatus, jqXHR)
+                {
+                    debugger;
+                    alert(data.message);
+                },
+                error: function (jqXHR, textStatus, errorThrown)
+                {
+                    alert("Error: " + textStatus);
+                }
+            });
+        }
+
+        function searchControl(){
+            $('#search').click(function () {
+                
+                var searchText = $('#txtSearch').val();
+                if(searchText.length == 0)
+                    return;
+
+                var fullPath = "http://localhost:8080/HAOSA/ISGServlet?";
+                var prms = "name=" + searchText;
+                var path = fullPath + prms;
+                $.getJSON( path, function( data ) {
+                    $('#_tbody').empty();
+                    var count = 1;
+                    $.each( data, function( id) {  
+                        $('#_tbody').append(getTableRowString(data[id], count++));
+                    });
+                    //
+                    tableEventHandler();
+                });
+
+            });
+        }
+
+
+        function getTableRowString(d, count){
+            var $row = $('<tr>'+
+                        '<th scope="row">' + count +'</th>'+
+                        '   <td>' +
+                            '<input id="' + d.id + '" type="text" name="yourname" style="text-align:center;"value="'+ d.name + '" disabled="disabled"/>' +
+                        '</td>'+
+                        
+                        '   <td>'+ d.date+ '</td>'+
+                        '   <td>'+
+                        '       <span class="glyphicon glyphicon-plus"></span>'+
+                        '   </td>'+
+                        '   <td>'+
+                        '       <span class="glyphicon glyphicon-trash"></span>'+
+                        '   </td>'+
+                        '</tr>'
+                        );
+
+            return $row;
+        }
+
+        function addControl(){
+            $('#add').click(function () {
+
+                var addText = $('#txtSearch').val();
+                if(addText.length == 0){
+                    alert('Input is empty, please fill the input text');
+                    return;
+                }
+                
+                var prms = "insert=" + addText;
+                $.ajax({
+                    url : "http://localhost:8080/HAOSA/ISGServlet",
+                    type: "POST",
+                    data : prms,
+                    success: function(data, textStatus, jqXHR)
+                    {
+                        debugger;   
+                        alert(data.message);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown)
+                    {
+                        alert("Error: " + textStatus);
+                    }
+                });
+                    
+            });
+        }
+
     </script>
 
     <title>Document</title>
@@ -69,10 +213,10 @@
                 <div class="input-group">
                     <input type="text" class="form-control" placeholder="Search" id="txtSearch"/>
                     <div class="input-group-btn">
-                        <button class="btn btn-primary" type="submit">
+                        <button id="search" class="btn btn-primary" type="submit">
                             <span class="glyphicon glyphicon-search"></span>                        
                         </button>
-                        <button class="btn btn-primary" type="submit">
+                        <button id="add" class="btn btn-primary" type="submit">
                                 <span class="glyphicon glyphicon-plus"></span>                        
                         </button>
                 </div>
@@ -83,7 +227,7 @@
             <div class="col-md-6 col-md-offset-3">
 
 
-            <table class="table table-striped">
+            <table id="_table" class="table table-striped">
                 <thead>
                     <tr>
                         <th scope="col">#</th>
@@ -93,7 +237,7 @@
                         <th scope="col">Delete</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="_tbody">
                     <tr>
                         <th scope="row">1</th>
                         <td>Mark</td>

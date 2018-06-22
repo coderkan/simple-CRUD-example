@@ -16,12 +16,13 @@
 
  	<!-- External CSS -->
  	<link rel="stylesheet" type="text/css" href="mstyle.css">
-  
+    <link rel="stylesheet" type="text/css" href="custom/jquery_confirm/jquery-confirm.min.css">
+
 	<!-- Scripts -->
 	<script  type="text/javascript" src="custom/vendor/bootstrap/js/popper.js"></script>
 	<script  type="text/javascript" src="custom/vendor/boostrap337/dist/js/bootstrap.min.js"></script>
 	<script  type="text/javascript" src="custom/vendor/select2/select2.min.js"></script>
-
+	<script  type="text/javascript" src="custom/jquery_confirm/jquery-confirm.min.js"></script>
     <style>
         input[type=text]:disabled {
             background: transparent;
@@ -43,6 +44,37 @@
             tableEventHandler();
         });
 
+        function convertTrToEng(trText){
+            var charMap = {
+                    Ç: 'C',
+                    Ö: 'O',
+                    Ş: 'S',
+                    İ: 'I',
+                    I: 'i',
+                    Ü: 'U',
+                    Ğ: 'G',
+                    ç: 'c',
+                    ö: 'o',
+                    ş: 's',
+                    ı: 'i',
+                    ü: 'u',
+                    ğ: 'g'
+                    };
+
+            var str = trText;
+
+            str_array = str.split('');
+
+            for (var i = 0, len = str_array.length; i < len; i++) {
+            str_array[i] = charMap[str_array[i]] || str_array[i];
+            }
+
+            str = str_array.join('');
+
+            var clearStr = str.replace(/[çöşüğı]/gi, "");
+            return clearStr;
+        }
+
         function tableEventHandler(){
             var tbl = document.getElementById("_table");
             if (tbl != null) {
@@ -59,7 +91,20 @@
             if (tbl != null) {
                 var cll = tbl.rows[index+1].cells[1];
                 var $text = $( cll ).children('input');
-                deleteData($text.attr('id'));
+                $.alert({
+                    theme: 'supervan',
+                    title: 'Attention',
+                    content: 'Delete User?',
+                    buttons: {
+                        confirm: function () {
+                            deleteData($text.attr('id'));
+                        },
+                        cancel: function () {
+
+                        }
+                    }
+                });
+
             }
         }
 
@@ -68,19 +113,36 @@
             var index =  $( elm ).parent().index();  
             var tbl = document.getElementById("_table");
             
+            
             if (tbl != null) {
                 var cll = tbl.rows[index+1].cells[1];
                 var $text = $( cll ).children('input');
             }
 
             if($spanIcon.hasClass("glyphicon glyphicon-ok") ){
-                // update 
-                updateInputData($text.attr('id'), $text.val());
-                $spanIcon.removeClass().addClass("glyphicon glyphicon-plus");   
-                $text.attr('disabled','false');
+                $.alert({
+                    theme: 'supervan',
+                    title: 'Attention',
+                    content: 'Update User?',
+                    buttons: {
+                        confirm: function () {
+                            // update
+                            updateInputData($text.attr('id'), convertTrToEng( $text.val() ));
+                            $spanIcon.removeClass().addClass("glyphicon glyphicon-plus"); 
+                            $text.attr('disabled','false');
+                        },
+                        cancel: function () {
+                            //$text.val(controlEditUpdate.tmpText);  
+                            $spanIcon.removeClass().addClass("glyphicon glyphicon-plus");   
+                            $text.attr('disabled','false');
+                        }
+                    }
+                });
+
             }else if($spanIcon.hasClass("glyphicon glyphicon-plus")){
                 $spanIcon.removeClass().addClass("glyphicon glyphicon-ok");
                 $text.removeAttr('disabled');
+                //controlEditUpdate.tmpText = $text.val();
             } 
         }
 
@@ -95,8 +157,11 @@
                 data : prms,
                 success: function(data, textStatus, jqXHR)
                 {
-                    debugger;
                     alert(data.message);
+                    if(data.code != 0 ){
+                        searchAction();
+                    }
+
                 },
                 error: function (jqXHR, textStatus, errorThrown)
                 {
@@ -109,6 +174,7 @@
             if(id == null)
                 return;
             if(text == null) text = "";
+            text = $.trim( text );
 
             var prms = "update=" + id + "&uname=" + text;
             $.ajax({
@@ -117,8 +183,10 @@
                 data : prms,
                 success: function(data, textStatus, jqXHR)
                 {
-                    debugger;
                     alert(data.message);
+                    if(data.code != 0){
+                        searchAction();
+                    }
                 },
                 error: function (jqXHR, textStatus, errorThrown)
                 {
@@ -127,26 +195,32 @@
             });
         }
 
+
+        function searchAction(){
+            var searchText = $('#txtSearch').val();
+            searchText = $.trim( searchText );
+            if(searchText.length == 0){
+                $('#_tbody').empty();
+                return;
+            }
+            searchText = convertTrToEng(searchText);
+            var fullPath = "http://localhost:8080/HAOSA/ISGServlet?";
+            var prms = "name=" + searchText;
+            var path = fullPath + prms;
+            $.getJSON( path, function( data ) {
+                $('#_tbody').empty();
+                var count = 1;
+                $.each( data, function( id) {  
+                    $('#_tbody').append(getTableRowString(data[id], count++));
+                });
+                //
+                tableEventHandler();
+            });
+        }
+
         function searchControl(){
             $('#search').click(function () {
-                
-                var searchText = $('#txtSearch').val();
-                if(searchText.length == 0)
-                    return;
-
-                var fullPath = "http://localhost:8080/HAOSA/ISGServlet?";
-                var prms = "name=" + searchText;
-                var path = fullPath + prms;
-                $.getJSON( path, function( data ) {
-                    $('#_tbody').empty();
-                    var count = 1;
-                    $.each( data, function( id) {  
-                        $('#_tbody').append(getTableRowString(data[id], count++));
-                    });
-                    //
-                    tableEventHandler();
-                });
-
+                searchAction();
             });
         }
 
@@ -171,31 +245,37 @@
             return $row;
         }
 
+        function addAction(){
+            var addText = $('#txtSearch').val();
+            addText = $.trim( addText );
+            if(addText.length == 0){
+                alert('Input is empty, please fill the input text');
+                return;
+            }
+            
+            addText = convertTrToEng(addText);
+            var prms = "insert=" + addText;
+            $.ajax({
+                url : "http://localhost:8080/HAOSA/ISGServlet",
+                type: "POST",
+                data : prms,
+                success: function(data, textStatus, jqXHR)
+                {
+                    alert(data.message);
+                    if(data.code != 0){
+                        searchAction();
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown)
+                {
+                    alert("Error: " + textStatus);
+                }
+            });
+        }
+
         function addControl(){
             $('#add').click(function () {
-
-                var addText = $('#txtSearch').val();
-                if(addText.length == 0){
-                    alert('Input is empty, please fill the input text');
-                    return;
-                }
-                
-                var prms = "insert=" + addText;
-                $.ajax({
-                    url : "http://localhost:8080/HAOSA/ISGServlet",
-                    type: "POST",
-                    data : prms,
-                    success: function(data, textStatus, jqXHR)
-                    {
-                        debugger;   
-                        alert(data.message);
-                    },
-                    error: function (jqXHR, textStatus, errorThrown)
-                    {
-                        alert("Error: " + textStatus);
-                    }
-                });
-                    
+                addAction();                    
             });
         }
 

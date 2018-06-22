@@ -38,6 +38,10 @@
 
     <script type="text/javascript">
 
+        /**
+        IE11 doesn't work
+        */
+        /*
         class TMP {
             constructor(){
                 this.index = -1;
@@ -56,10 +60,25 @@
         }
         
         var tmp;
+        */
+        var tmp = {
+            index: -1,
+            text : "",
+            clear : function() {
+                this.index = -1;
+                this.text = "";
+            },
+            setValues: function(ind, txt){
+                this.index = ind;
+                this.text = txt;
+            }
+        };
+        var baseURL = "http://localhost:8080/CRUDBackend/ISGServlet";
 
         $(function() {
             // Handler for .ready() called.
-            tmp = new TMP();
+            //tmp = new TMP();
+            tmp.clear();
             searchControl();
             addControl();
             tableEventHandler();
@@ -190,7 +209,7 @@
 
             var prms = "delete=" + id;
             $.ajax({
-                url : "http://localhost:8080/HAOSA/ISGServlet",
+                url : baseURL,
                 type: "POST",
                 data : prms,
                 success: function(data, textStatus, jqXHR)
@@ -226,7 +245,7 @@
 
             var prms = "update=" + id + "&uname=" + text;
             $.ajax({
-                url : "http://localhost:8080/HAOSA/ISGServlet",
+                url : baseURL,
                 type: "POST",
                 data : prms,
                 success: function(data, textStatus, jqXHR)
@@ -264,7 +283,7 @@
                 return;
             }
             searchText = convertTrToEng(searchText);
-            var fullPath = "http://localhost:8080/HAOSA/ISGServlet?";
+            var fullPath = baseURL+"?";
             var prms = "name=" + searchText;
             var path = fullPath + prms;
             $.getJSON( path, function( data ) {
@@ -341,7 +360,7 @@
             addText = convertTrToEng(addText);
             var prms = "insert=" + addText;
             $.ajax({
-                url : "http://localhost:8080/HAOSA/ISGServlet",
+                url : baseURL,
                 type: "POST",
                 data : prms,
                 success: function(data, textStatus, jqXHR)

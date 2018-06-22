@@ -37,8 +37,29 @@
 
 
     <script type="text/javascript">
+
+        class TMP {
+            constructor(){
+                this.index = -1;
+                this.text = "";
+            }
+
+            clear(){
+                this.index = -1;
+                this.text = "";
+            }
+
+            setValues(indx, txt){
+                this.index = indx;
+                this.text = txt;
+            }
+        }
+        
+        var tmp;
+
         $(function() {
             // Handler for .ready() called.
+            tmp = new TMP();
             searchControl();
             addControl();
             tableEventHandler();
@@ -111,11 +132,11 @@
         function controlEditUpdate(elm){
             var $spanIcon =  $( elm ).children('span');
             var index =  $( elm ).parent().index();  
-            var tbl = document.getElementById("_table");
+            var table = document.getElementById("_table");
             
             
-            if (tbl != null) {
-                var cll = tbl.rows[index+1].cells[1];
+            if (table != null) {
+                var cll = table.rows[index+1].cells[1];
                 var $text = $( cll ).children('input');
             }
 
@@ -131,18 +152,35 @@
                             $spanIcon.removeClass().addClass("glyphicon glyphicon-plus"); 
                             $text.attr('disabled','false');
                         },
-                        cancel: function () {
-                            //$text.val(controlEditUpdate.tmpText);  
+                        cancel: function () {  
                             $spanIcon.removeClass().addClass("glyphicon glyphicon-plus");   
                             $text.attr('disabled','false');
+                            $text.val(tmp.text);
+                            tmp.clear();
                         }
                     }
                 });
 
             }else if($spanIcon.hasClass("glyphicon glyphicon-plus")){
-                $spanIcon.removeClass().addClass("glyphicon glyphicon-ok");
-                $text.removeAttr('disabled');
-                //controlEditUpdate.tmpText = $text.val();
+                if(tmp.index == -1){
+                    $spanIcon.removeClass().addClass("glyphicon glyphicon-ok");
+                    $text.removeAttr('disabled');                
+                    tmp.setValues(index, $text.val());
+                }else{
+                    if (table != null) {
+                        var cl = table.rows[tmp.index+1].cells[1];
+                        var $tmpText = $( cl ).children('input');
+                        $tmpText.val(tmp.text);
+        
+                        var edt = table.rows[tmp.index+1].cells[3];
+                        var $edtSpan = $( edt ).children('span');
+                        $spanIcon.removeClass().addClass("glyphicon glyphicon-ok");
+                        $edtSpan.removeClass().addClass("glyphicon glyphicon-plus");
+                        $tmpText.attr('disabled','false'); 
+                        $text.removeAttr('disabled'); 
+                        tmp.setValues(index, $text.val());
+                    }
+                }
             } 
         }
 
@@ -157,7 +195,12 @@
                 data : prms,
                 success: function(data, textStatus, jqXHR)
                 {
-                    alert(data.message);
+                    $.alert({
+                        theme: 'supervan',
+                        title: 'Alert!',
+                        content: data.message,
+                    });
+                    //alert(data.message);
                     if(data.code != 0 ){
                         searchAction();
                     }
@@ -165,7 +208,12 @@
                 },
                 error: function (jqXHR, textStatus, errorThrown)
                 {
-                    alert("Error: " + textStatus);
+                    $.alert({
+                        theme: 'supervan', 
+                        title: 'Alert!',
+                        content: "Error: " + textStatus,
+                    });
+                    //alert("Error: " + textStatus);
                 }
             });            
         }
@@ -183,14 +231,25 @@
                 data : prms,
                 success: function(data, textStatus, jqXHR)
                 {
-                    alert(data.message);
+                    $.alert({
+                        theme: 'supervan',
+                        title: 'Alert!',
+                        content: data.message,
+                    });
+                    //alert(data.message);
                     if(data.code != 0){
                         searchAction();
+                        tmp.clear();
                     }
                 },
                 error: function (jqXHR, textStatus, errorThrown)
                 {
-                    alert("Error: " + textStatus);
+                    $.alert({
+                        theme: 'supervan',
+                        title: 'Alert!',
+                        content: data.message,
+                    });
+                    //alert("Error: " + textStatus);
                 }
             });
         }
@@ -201,6 +260,7 @@
             searchText = $.trim( searchText );
             if(searchText.length == 0){
                 $('#_tbody').empty();
+                tmp.clear();
                 return;
             }
             searchText = convertTrToEng(searchText);
@@ -213,6 +273,8 @@
                 $.each( data, function( id) {  
                     $('#_tbody').append(getTableRowString(data[id], count++));
                 });
+                //if(data.length == 0)
+                    tmp.clear();
                 //
                 tableEventHandler();
             });
@@ -221,6 +283,11 @@
         function searchControl(){
             $('#search').click(function () {
                 searchAction();
+            });
+            $('#txtSearch').keypress(function(event){
+                if(event.keyCode == 13){
+                    $('#search').click();
+                }
             });
         }
 
@@ -244,14 +311,32 @@
 
             return $row;
         }
-
-        function addAction(){
-            var addText = $('#txtSearch').val();
+        
+        function isTextNull(id){
+            var addText = $(id).val();
             addText = $.trim( addText );
             if(addText.length == 0){
-                alert('Input is empty, please fill the input text');
-                return;
+                $.alert({
+                    theme: 'supervan',
+                    title: 'Alert!',
+                    content: 'Input is empty, please fill the input text',
+                });
+                return true;
             }
+            return false;
+        }
+
+        function addAction(addText){
+            //var addText = $('#txtSearch').val();
+            /*addText = $.trim( addText );
+            if(addText.length == 0){
+                $.alert({
+                        title: 'Alert!',
+                        content: 'Input is empty, please fill the input text',
+                    });
+                //alert('Input is empty, please fill the input text');
+                return;
+            } */
             
             addText = convertTrToEng(addText);
             var prms = "insert=" + addText;
@@ -261,21 +346,45 @@
                 data : prms,
                 success: function(data, textStatus, jqXHR)
                 {
-                    alert(data.message);
+                    $.alert({
+                        theme: 'supervan',
+                        title: 'Alert!',
+                        content: data.message,
+                    });
+                    //alert(data.message);
                     if(data.code != 0){
                         searchAction();
                     }
                 },
                 error: function (jqXHR, textStatus, errorThrown)
                 {
-                    alert("Error: " + textStatus);
+                    $.alert({
+                        theme: 'supervan',
+                        title: 'Alert!',
+                        content: "Error: " + textStatus,
+                    });
+                    //alert("Error: " + textStatus);
                 }
             });
         }
 
         function addControl(){
             $('#add').click(function () {
-                addAction();                    
+                
+                if(!isTextNull('#txtSearch')){
+                    $.confirm({
+                        theme: 'supervan',
+                        title: 'Attention!',
+                        content: "Do you want to add " + $('#txtSearch').val() + " person to database?", 
+                        buttons: {
+                            confirm: function () {
+                                addAction($('#txtSearch').val());
+                            },
+                            cancel: function () {
+                            }
+                        }
+                    });
+                }
             });
         }
 
@@ -318,42 +427,7 @@
                     </tr>
                 </thead>
                 <tbody id="_tbody">
-                    <tr>
-                        <th scope="row">1</th>
-                        <td>Mark</td>
-                        <td>Otto</td>
-                        <td style="text-align: center;">
-                            <span class="glyphicon glyphicon-plus"></span>
-                        </td>
-                        <td >
-                            <span class="glyphicon glyphicon-trash"></span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">2</th>
-                        <td >
-                            <input id="etext" type="text" name="yourname" style="text-align:center;"value="Erkan Güzeler" disabled="disabled"/>
-                            <!--<input id="etext" type="text" name="yourname" value="Erkan Güzeler" readonly="true" ondblclick="this.readOnly=''"/>-->
-                        </td>
-                        <td>Thornton</td>
-                        <td>
-                            <span id="spn" class="glyphicon glyphicon-plus"></span>
-                        </td>
-                        <td>
-                            <span class="glyphicon glyphicon-trash"></span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">3</th>
-                        <td>Larry</td>
-                        <td>the Bird</td>
-                        <td>
-                            <span class="glyphicon glyphicon-plus"></span>
-                        </td>
-                        <td>
-                            <span class="glyphicon glyphicon-trash"></span>
-                        </td>
-                    </tr>
+                    <!-- Data will load dynamically-->
                 </tbody>
             </table>
         </div>
